@@ -1,0 +1,2 @@
+# javacore
+Java core exercise
