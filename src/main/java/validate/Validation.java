@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import model.Item;
 import model.Menu;
 
 import java.util.Collection;
@@ -13,6 +14,7 @@ import java.util.Collection;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Validation {
     private String[] types = {"Food", "Drink"};
+    private String[] typeOfItems = {"breakfast", "launch", "dinner"};
 
     public static Validation getInstance() {
         return Singleton.INSTANCE;
@@ -30,8 +32,21 @@ public class Validation {
         return false;
     }
 
+    public boolean isItemTypeValid(Item item) {
+        for (var type : typeOfItems) {
+            if (type.equalsIgnoreCase(item.getType()))
+                return true;
+        }
+        return false;
+    }
+
     public boolean isDuplicateType(Collection<Menu> collection, Menu menu) {
         return collection.stream()
-                .anyMatch(c -> c.getType() == menu.getType());
+                .anyMatch(c -> c.getType().equals(menu.getType()));
+    }
+
+    public boolean isDuplicateItemType(Collection<Item> collection, Item item) {
+        return collection.stream()
+                .anyMatch(c -> c.getType().equals(item.getType()));
     }
 }

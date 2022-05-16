@@ -1,5 +1,6 @@
 package management;
 
+import constants.AppConstants;
 import model.Item;
 import model.Menu;
 import lombok.Getter;
@@ -9,6 +10,7 @@ import utils.OpenCsvWriter;
 import validate.Validation;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,12 +32,9 @@ public class MenuManagement {
         if (!Validation.getInstance().isTypeValid(menu))
             return;
 
-        if(menuList.isEmpty())
-        {
+        if (menuList.isEmpty()) {
             menuList.add(menu);
-        }
-        else
-        {
+        } else {
             if (menuList.contains(menu)) {
                 // update menu
                 for (var menu1 : menuList) {
@@ -49,27 +48,54 @@ public class MenuManagement {
                     menuList.add(menu);
             }
         }
-        OpenCsvWriter.writeToCsvFrom(menuList.get(0));
+        OpenCsvWriter.getInstance().writeMenuToCsv(menuList);
     }
 
     public Menu getMenuById(String id) {
-        return menuList.stream()
-                .filter(m -> m.getId() == id)
-                .findFirst()
-                .get();
+        var opt = menuList.stream()
+                .filter(m -> m.getId().equals(id))
+                .findFirst();
+        return opt.orElse(null);
     }
 
     public List<Menu> getAllMenus() {
-        var menus = OpenCsvReader.readCsvToObject("csv/menu.csv");
-        return menus;
+        return OpenCsvReader.getInstance().parseCsvToMenu(AppConstants.MENU_CSV_PATH);
     }
 
     public void deleteById(String id) {
-        menuList.removeIf(menu -> menu.getId() == id);
+        menuList.removeIf(menu -> menu.getId().equals(id));
     }
 
+    public void createOrUpdateItem(Item item, String menuId) {
+        var menu = getMenuById(menuId);
+        var items = menu.getMenuItems();
 
-    public void createOrUpdateItem(Item item) {
+        if (!Validation.getInstance().isItemTypeValid(item))
+            return;
 
+        if (items == null || items.isEmpty()) {
+            if (items == null)
+                items = new HashSet<>();
+            items.add(item);
+        } else {
+            if (items.contains(item)) {
+                // update menu
+                for (var o : items) {
+                    if (Objects.equals(o.getId(), item.getId())) {
+                        o.setMenuId(menu.getId());
+                        o.setName(item.getName());
+                        o.setNote(item.getNote());
+                        o.setPrice(item.getPrice());
+                        o.setQuality(item.getQuality());
+                        o.setDescription(item.getDescription());
+                    }
+                }
+            } else {
+                // create
+                if (!Validation.getInstance().isDuplicateItemType(items, item))
+                    items.add(item);
+            }
+        }
+        OpenCsvWriter.getInstance().writeItemToCsv(items);
     }
 }
