@@ -2,8 +2,10 @@ package management;
 
 import constants.AppConstants;
 import model.Bill;
+import model.OrderedItem;
 import utils.OpenCsvReader;
 import utils.OpenCsvWriter;
+import validate.Validation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +19,18 @@ public class BillManagement {
     }
 
     public void showBill() {
-        bills.forEach(System.out::println);
+        OpenCsvReader.getInstance().parseCsvToObjectUsingAnnotation(Bill.class, AppConstants.BILL_CSV_PATH)
+                .forEach(System.out::println);
+    }
+
+    public void createOrUpdateOrderItem(OrderedItem orderedItem) {
+
     }
 
     public void createOrUpdateBill(Bill bill) {
+        if (Validation.getInstance().isInvalidId(bill))
+            return;
+
         if (bills.isEmpty()) {
             bills.add(bill);
         } else {

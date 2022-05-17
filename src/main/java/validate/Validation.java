@@ -6,9 +6,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.reflect.MethodUtils;
+import utils.MethodExtensions;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Getter
@@ -48,14 +51,28 @@ public class Validation {
     @SafeVarargs
     public final <T> boolean isInvalidId(T... models) {
         return Stream.of(models)
-                .noneMatch(model -> {
-                    try {
-                        var object = MethodUtils.invokeMethod(model, "getId");
-                        return object != null;
-                    } catch (ReflectiveOperationException e) {
-                        log.error(e.getMessage(), e.getCause());
-                        return false;
-                    }
+                .anyMatch(model -> {
+                    var methods = model.getClass().getDeclaredMethods();
+                    var methods2 = Stream.of(methods)
+                            .filter(method -> {
+                                if (MethodExtensions.isGetter(method)) {
+                                    var upperCase = method.getName()
+                                            .toUpperCase()
+                                            .substring(3);
+                                    return upperCase.contains("ID");
+                                }
+                                return false;
+                            }).collect(Collectors.toList());
+
+                    var objects = methods2.stream()
+                            .map(method -> {
+                                try {
+                                    return method.invoke(model);
+                                } catch (ReflectiveOperationException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }).collect(Collectors.toList());
+                    return objects.stream().anyMatch(Objects::isNull);
                 });
     }
 
