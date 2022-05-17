@@ -1,5 +1,6 @@
 package model;
 
+import com.opencsv.bean.CsvBindByPosition;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +12,9 @@ import java.util.Set;
 @Setter
 @Builder
 public class Menu {
+    @CsvBindByPosition(position = 0)
     private String id;
+    @CsvBindByPosition(position = 1)
     private String type;
     private Set<Item> menuItems;
 

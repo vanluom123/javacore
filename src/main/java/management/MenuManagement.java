@@ -1,10 +1,10 @@
 package management;
 
 import constants.AppConstants;
-import model.Item;
-import model.Menu;
 import lombok.Getter;
 import lombok.Setter;
+import model.Item;
+import model.Menu;
 import utils.OpenCsvReader;
 import utils.OpenCsvWriter;
 import validate.Validation;
@@ -24,12 +24,17 @@ public class MenuManagement {
     }
 
     public void showMenu() {
-        menuList.forEach(System.out::println);
+        var lstMenu = OpenCsvReader.getInstance()
+                .parseCsvToObjectUsingAnnotation(Menu.class, AppConstants.MENU_CSV_PATH);
+        lstMenu.forEach(System.out::println);
     }
 
     public void createOrUpdateMenu(Menu menu) {
 
         if (!Validation.getInstance().isTypeValid(menu))
+            return;
+
+        if(Validation.getInstance().isInvalidId(menu))
             return;
 
         if (menuList.isEmpty()) {
@@ -44,11 +49,11 @@ public class MenuManagement {
                 }
             } else {
                 // create
-                if (!Validation.getInstance().isDuplicateType(menuList, menu))
+                if (Validation.getInstance().isNotDuplicationType(menuList, menu))
                     menuList.add(menu);
             }
         }
-        OpenCsvWriter.getInstance().writeMenuToCsv(menuList);
+        OpenCsvWriter.getInstance().importToCsvFiles(menuList, AppConstants.MENU_CSV_PATH);
     }
 
     public Menu getMenuById(String id) {
@@ -59,23 +64,32 @@ public class MenuManagement {
     }
 
     public List<Menu> getAllMenus() {
-        return OpenCsvReader.getInstance().parseCsvToMenu(AppConstants.MENU_CSV_PATH);
+        return OpenCsvReader.getInstance().parseCsvToObjectUsingAnnotation(Menu.class, AppConstants.MENU_CSV_PATH);
     }
 
     public void deleteById(String id) {
-        menuList.removeIf(menu -> menu.getId().equals(id));
+        var lstMenu = OpenCsvReader.getInstance().parseCsvToObjectUsingAnnotation(Menu.class, AppConstants.MENU_CSV_PATH);
+        // delete
+        lstMenu.removeIf(menu -> menu.getId().equals(id));
+        // update
+        OpenCsvWriter.getInstance().importToCsvFiles(lstMenu, AppConstants.MENU_CSV_PATH);
     }
 
     public void createOrUpdateItem(Item item, String menuId) {
-        var menu = getMenuById(menuId);
-        var items = menu.getMenuItems();
+        if (Validation.getInstance().isTypeValid(item))
+            return;
 
-        if (!Validation.getInstance().isItemTypeValid(item))
+        var menu = getMenuById(menuId);
+        if (menu == null) return;
+
+        var items = menu.getMenuItems();
+        if (Validation.getInstance().isInvalidId(item, menu))
             return;
 
         if (items == null || items.isEmpty()) {
             if (items == null)
                 items = new HashSet<>();
+            item.setMenuId(menuId);
             items.add(item);
         } else {
             if (items.contains(item)) {
@@ -92,10 +106,12 @@ public class MenuManagement {
                 }
             } else {
                 // create
-                if (!Validation.getInstance().isDuplicateItemType(items, item))
+                if (Validation.getInstance().isNotDuplicationType(items, item)) {
+                    item.setMenuId(menuId);
                     items.add(item);
+                }
             }
         }
-        OpenCsvWriter.getInstance().writeItemToCsv(items);
+        OpenCsvWriter.getInstance().importToCsvFiles(items, AppConstants.ITEM_CSV_PATH);
     }
 }

@@ -1,7 +1,5 @@
 package constants;
 
-import lombok.SneakyThrows;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;

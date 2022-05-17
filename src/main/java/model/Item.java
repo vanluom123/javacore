@@ -1,21 +1,32 @@
 package model;
 
+import com.opencsv.bean.CsvBindByPosition;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Objects;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @Builder
 public class Item {
+    @CsvBindByPosition(position = 0)
     private String id;
+    @CsvBindByPosition(position = 1)
     private String menuId;
+    @CsvBindByPosition(position = 2)
     private String name;
+    @CsvBindByPosition(position = 3)
     private String description;
+    @CsvBindByPosition(position = 4)
     private int quality;
+    @CsvBindByPosition(position = 5)
     private int price;
+    @CsvBindByPosition(position = 6)
     private String note;
+    @CsvBindByPosition(position = 7)
     private String type;
     private Menu menu;
     private Set<OrderedItem> orderedItems;

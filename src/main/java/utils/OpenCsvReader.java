@@ -1,21 +1,14 @@
 package utils;
 
-import com.opencsv.CSVParser;
-import com.opencsv.CSVParserBuilder;
-import com.opencsv.CSVReader;
-import com.opencsv.CSVReaderBuilder;
-import com.opencsv.exceptions.CsvException;
+import com.opencsv.bean.CsvToBean;
+import com.opencsv.bean.CsvToBeanBuilder;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import model.Bill;
-import model.Menu;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.io.Reader;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OpenCsvReader {
@@ -27,60 +20,17 @@ public class OpenCsvReader {
     private static class Singleton {
         private static final OpenCsvReader INSTANCE = new OpenCsvReader();
     }
+    public <T> List<T> parseCsvToObjectUsingAnnotation(Class<? extends T> type, String csvFile) {
+        try (Reader reader = new FileReader(csvFile)) {
+            CsvToBean<T> csvToBean = new CsvToBeanBuilder<T>(reader)
+                    .withType(type)
+                    .withSkipLines(1) // skip header
+                    .withIgnoreLeadingWhiteSpace(true)
+                    .build();
 
-    public List<Menu> parseCsvToMenu(String pathName) {
-        CSVParser csvParser = new CSVParserBuilder()
-                .withSeparator(CSVParser.DEFAULT_SEPARATOR)
-                .build(); // custom separator
-
-        try (CSVReader reader = new CSVReaderBuilder(new FileReader(pathName))
-                .withCSVParser(csvParser)   // custom CSV parser
-                .withSkipLines(1)           // skip the first line, header info
-                .build()) {
-            return reader.readAll()
-                    .stream()
-                    .map(data -> {
-                        var menu = Menu.builder()
-                                .id(data[0])
-                                .type(data[1])
-                                .build();
-                        return menu;
-                    })
-                    .collect(Collectors.toList());
-        } catch (IOException | CsvException e) {
-            System.out.println(e.getMessage());
+            return csvToBean.parse();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        return null;
-    }
-
-    public List<Bill> parseCSVToBill(String pathName) {
-        CSVParser csvParser = new CSVParserBuilder()
-                .withSeparator(CSVParser.DEFAULT_SEPARATOR)
-                .build(); // custom separator
-
-        try (CSVReader reader = new CSVReaderBuilder(new FileReader(pathName))
-                .withCSVParser(csvParser)   // custom CSV parser
-                .withSkipLines(1)           // skip the first line, header info
-                .build()) {
-            return reader.readAll()
-                    .stream()
-                    .map(data -> {
-                        Bill bill;
-                        try {
-                            bill = Bill.builder()
-                                    .id(data[0])
-                                    .orderedTime(new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss").parse(data[1]))
-                                    .totalPrice(Integer.parseInt(data[2]))
-                                    .build();
-                        } catch (ParseException e) {
-                            throw new RuntimeException(e);
-                        }
-                        return bill;
-                    })
-                    .collect(Collectors.toList());
-        } catch (IOException | CsvException e) {
-            System.out.println(e.getMessage());
-        }
-        return null;
     }
 }

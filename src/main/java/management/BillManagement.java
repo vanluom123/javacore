@@ -43,19 +43,19 @@ public class BillManagement {
                 bills.add(insertingBill);
             }
         }
-        OpenCsvWriter.getInstance().writeBillToCsv(bills);
+        OpenCsvWriter.getInstance().importToCsvFiles(bills, AppConstants.BILL_CSV_PATH);
     }
 
     public Bill getBillById(String idBill) {
-        var bills = OpenCsvReader.getInstance().parseCSVToBill(AppConstants.BILL_CSV_PATH);
+        var bills = OpenCsvReader.getInstance().parseCsvToObjectUsingAnnotation(Bill.class, AppConstants.BILL_CSV_PATH);
         var opt = bills.stream().filter(bill -> bill.getId().equals(idBill))
                 .findFirst();
         return opt.orElse(null);
     }
 
     public void deleteBillById(String idBill) {
-        var bills = OpenCsvReader.getInstance().parseCSVToBill(AppConstants.BILL_CSV_PATH);
+        var bills = OpenCsvReader.getInstance().parseCsvToObjectUsingAnnotation(Bill.class, AppConstants.BILL_CSV_PATH);
         bills.removeIf(bill -> bill.getId().equals(idBill));
-        OpenCsvWriter.getInstance().writeBillToCsv(bills);
+        OpenCsvWriter.getInstance().importToCsvFiles(bills, AppConstants.BILL_CSV_PATH);
     }
 }
