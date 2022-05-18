@@ -1,7 +1,6 @@
 package model;
 
 import com.opencsv.bean.CsvBindByPosition;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,7 +9,6 @@ import java.util.Set;
 
 @Getter
 @Setter
-@Builder
 public class Menu {
     @CsvBindByPosition(position = 0)
     private String id;
@@ -32,6 +30,6 @@ public class Menu {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Menu menu = (Menu) o;
-        return Objects.equals(id, menu.id) || Objects.equals(type, menu.type);
+        return Objects.equals(id, menu.id);
     }
 }

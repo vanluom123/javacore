@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.reflect.MethodUtils;
 import utils.MethodExtensions;
 
 import java.util.Arrays;
@@ -30,15 +29,16 @@ public class Validation {
         private static final Validation INSTANCE = new Validation();
     }
 
-    public <T> boolean isTypeValid(T model) {
-        String[] types = null;
-        if (model.getClass().getName().contains("Item"))
-            types = this.typeOfItems;
-        else if (model.getClass().getName().contains("Menu"))
-            types = this.types;
-
+    public <T> boolean isTypeValid(T entity) {
         try {
-            var object = MethodUtils.invokeMethod(model, "getType");
+            String[] types = null;
+            if (entity.getClass().getName().contains("Item"))
+                types = this.typeOfItems;
+            else if (entity.getClass().getName().contains("Menu"))
+                types = this.types;
+
+            var method = entity.getClass().getMethod("getType");
+            var object = method.invoke(entity);
             return Arrays
                     .stream(types)
                     .anyMatch(s -> s.equalsIgnoreCase(String.valueOf(object)));
@@ -49,11 +49,11 @@ public class Validation {
     }
 
     @SafeVarargs
-    public final <T> boolean isInvalidId(T... models) {
-        return Stream.of(models)
-                .anyMatch(model -> {
-                    var methods = model.getClass().getDeclaredMethods();
-                    var methods2 = Stream.of(methods)
+    public final <T> boolean isInvalidId(T... entities) {
+        return Stream.of(entities)
+                .anyMatch(entity -> {
+                    var methods = entity.getClass().getDeclaredMethods();
+                    var gettingIdMethods = Stream.of(methods)
                             .filter(method -> {
                                 if (MethodExtensions.isGetter(method)) {
                                     var upperCase = method.getName()
@@ -64,24 +64,27 @@ public class Validation {
                                 return false;
                             }).collect(Collectors.toList());
 
-                    var objects = methods2.stream()
+                    var objects = gettingIdMethods.stream()
                             .map(method -> {
                                 try {
-                                    return method.invoke(model);
+                                    return method.invoke(entity);
                                 } catch (ReflectiveOperationException e) {
-                                    throw new RuntimeException(e);
+                                    log.error(e.getMessage(), e.getCause());
+                                    return null;
                                 }
                             }).collect(Collectors.toList());
                     return objects.stream().anyMatch(Objects::isNull);
                 });
     }
 
-    public <T> boolean isNotDuplicationType(Collection<? super T> collection, T object) {
+    public <T> boolean isNotDuplicationType(Collection<? super T> collection, T entity) {
         return collection.stream()
                 .noneMatch(c -> {
                     try {
-                        var object1 = MethodUtils.invokeMethod(c, "getType");
-                        var object2 = MethodUtils.invokeMethod(object, "getType");
+                        var method1 = c.getClass().getMethod("getType");
+                        var method2 = entity.getClass().getMethod("getType");
+                        var object1 = method1.invoke(c);
+                        var object2 = method2.invoke(entity);
                         return object1.equals(object2);
                     } catch (ReflectiveOperationException e) {
                         log.error(e.getMessage(), e.getCause());

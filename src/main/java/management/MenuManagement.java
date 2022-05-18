@@ -3,6 +3,7 @@ package management;
 import constants.AppConstants;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.log4j.Log4j2;
 import model.Item;
 import model.Menu;
 import utils.OpenCsvReader;
@@ -16,6 +17,7 @@ import java.util.Objects;
 
 @Getter
 @Setter
+@Log4j2
 public class MenuManagement {
     private List<Menu> menuList;
 
@@ -25,17 +27,17 @@ public class MenuManagement {
 
     public void showMenu() {
         var lstMenu = OpenCsvReader.getInstance()
-                .parseCsvToObjectUsingAnnotation(Menu.class, AppConstants.MENU_CSV_PATH);
+                .parseToObject(Menu.class, AppConstants.MENU_CSV_PATH);
         lstMenu.forEach(System.out::println);
     }
 
-    public void createOrUpdateMenu(Menu menu) {
+    public boolean createOrUpdateMenu(Menu menu) {
 
         if (!Validation.getInstance().isTypeValid(menu))
-            return;
+            return false;
 
-        if(Validation.getInstance().isInvalidId(menu))
-            return;
+        if (Validation.getInstance().isInvalidId(menu))
+            return false;
 
         if (menuList.isEmpty()) {
             menuList.add(menu);
@@ -54,38 +56,55 @@ public class MenuManagement {
             }
         }
         OpenCsvWriter.getInstance().importToCsvFiles(menuList, AppConstants.MENU_CSV_PATH);
+        return true;
     }
 
     public Menu getMenuById(String id) {
-        var opt = menuList.stream()
-                .filter(m -> m.getId().equals(id))
-                .findFirst();
-        return opt.orElse(null);
+        try {
+            var lstMenu = OpenCsvReader.getInstance().parseToObject(Menu.class, AppConstants.MENU_CSV_PATH);
+            var opt = lstMenu.stream()
+                    .filter(m -> m.getId().equals(id))
+                    .findAny();
+            return opt.orElse(null);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e.getCause());
+            return null;
+        }
     }
 
     public List<Menu> getAllMenus() {
-        return OpenCsvReader.getInstance().parseCsvToObjectUsingAnnotation(Menu.class, AppConstants.MENU_CSV_PATH);
+        try {
+            return OpenCsvReader.getInstance().parseToObject(Menu.class, AppConstants.MENU_CSV_PATH);
+        } catch (RuntimeException e) {
+            log.error(e.getMessage(), e.getCause());
+            return null;
+        }
     }
 
     public void deleteById(String id) {
-        var lstMenu = OpenCsvReader.getInstance().parseCsvToObjectUsingAnnotation(Menu.class, AppConstants.MENU_CSV_PATH);
-        // delete
-        lstMenu.removeIf(menu -> menu.getId().equals(id));
-        // update
-        OpenCsvWriter.getInstance().importToCsvFiles(lstMenu, AppConstants.MENU_CSV_PATH);
+        try {
+            var lstMenu = OpenCsvReader.getInstance().parseToObject(Menu.class, AppConstants.MENU_CSV_PATH);
+            // delete
+            lstMenu.removeIf(menu -> menu.getId().equals(id));
+            // update
+            OpenCsvWriter.getInstance().importToCsvFiles(lstMenu, AppConstants.MENU_CSV_PATH);
+        } catch (RuntimeException e) {
+            log.error(e.getMessage(), e.getCause());
+        }
     }
 
-    public void createOrUpdateItem(Item item, String menuId) {
-        if (Validation.getInstance().isTypeValid(item))
-            return;
+    public boolean createOrUpdateItem(Item item, String menuId) {
+        if (!Validation.getInstance().isTypeValid(item))
+            return false;
 
         var menu = getMenuById(menuId);
-        if (menu == null) return;
+        if (menu == null)
+            return false;
+
+        if (Validation.getInstance().isInvalidId(item, menu))
+            return false;
 
         var items = menu.getMenuItems();
-        if (Validation.getInstance().isInvalidId(item, menu))
-            return;
-
         if (items == null || items.isEmpty()) {
             if (items == null)
                 items = new HashSet<>();
@@ -113,5 +132,6 @@ public class MenuManagement {
             }
         }
         OpenCsvWriter.getInstance().importToCsvFiles(items, AppConstants.ITEM_CSV_PATH);
+        return true;
     }
 }

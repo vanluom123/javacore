@@ -2,9 +2,9 @@ package validate;
 
 import model.Menu;
 import model.OrderedItem;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Assertions;
 
 import java.util.UUID;
 
@@ -14,10 +14,9 @@ public class ValidationTest {
 
     @BeforeAll
     static void setUp() {
-        menu = Menu.builder()
-                .id(UUID.randomUUID().toString())
-                .type("food")
-                .build();
+        menu = new Menu();
+        menu.setId(UUID.randomUUID().toString());
+        menu.setType("food");
     }
 
     @Test
@@ -28,37 +27,33 @@ public class ValidationTest {
 
     @Test
     public void Invalid_OrderItem_Item_Id_Test() {
-        OrderedItem item = OrderedItem.builder()
-                .itemId(null)
-                .billId(UUID.randomUUID().toString())
-                .build();
+        OrderedItem item = new OrderedItem();
+        item.setItemId(null);
+        item.setBillId(UUID.randomUUID().toString());
         Assertions.assertTrue(Validation.getInstance().isInvalidId(item));
     }
 
     @Test
     public void Invalid_OrderItem_Bill_Id_Test() {
-        OrderedItem item = OrderedItem.builder()
-                .itemId(UUID.randomUUID().toString())
-                .billId(null)
-                .build();
+        OrderedItem item = new OrderedItem();
+        item.setItemId(UUID.randomUUID().toString());
+        item.setBillId(null);
         Assertions.assertTrue(Validation.getInstance().isInvalidId(item));
     }
 
     @Test
     public void Invalid_OrderItem_Bill_Item_Id_Test() {
-        OrderedItem item = OrderedItem.builder()
-                .itemId(null)
-                .billId(null)
-                .build();
+        OrderedItem item = new OrderedItem();
+        item.setItemId(null);
+        item.setBillId(null);
         Assertions.assertTrue(Validation.getInstance().isInvalidId(item));
     }
 
     @Test
     public void Valid_OrderItem_Bill_Item_Id_Test() {
-        OrderedItem item = OrderedItem.builder()
-                .itemId(UUID.randomUUID().toString())
-                .billId(UUID.randomUUID().toString())
-                .build();
+        OrderedItem item = new OrderedItem();
+        item.setItemId(UUID.randomUUID().toString());
+        item.setBillId(UUID.randomUUID().toString());
         Assertions.assertFalse(Validation.getInstance().isInvalidId(item));
     }
 }

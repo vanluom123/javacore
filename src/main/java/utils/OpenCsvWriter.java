@@ -1,12 +1,13 @@
 package utils;
 
 import com.opencsv.CSVWriter;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -15,6 +16,7 @@ import java.util.LinkedList;
 import java.util.stream.Stream;
 
 @Log4j2
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class OpenCsvWriter {
 
     public static OpenCsvWriter getInstance() {
@@ -59,18 +61,11 @@ public class OpenCsvWriter {
                             && !Collection.class.isAssignableFrom(method.getReturnType())) {
                         try {
                             m = model.getClass().getMethod(method.getName());
-                        } catch (NoSuchMethodException e) {
-                            e.printStackTrace();
-                        }
-
-                        try {
-                            if (m != null) {
-                                obj = m.invoke(model);
-                            }
+                            obj = m.invoke(model);
                             var uppercaseMethodName = method.getName().toUpperCase().substring(3);
                             var value = Stream.of(csvData.get(0))
                                     .filter(s -> uppercaseMethodName.equals(s.toUpperCase()))
-                                    .findAny().get();
+                                    .findAny().orElseThrow(RuntimeException::new);
                             var idx = 0;
                             for (int i = 0; i < csvData.get(0).length; ++i) {
                                 if (csvData.get(0)[i].equals(value)) {
@@ -79,8 +74,8 @@ public class OpenCsvWriter {
                                 }
                             }
                             records[idx] = String.valueOf(obj);
-                        } catch (NullPointerException | InvocationTargetException | IllegalAccessException ex) {
-                            ex.printStackTrace();
+                        } catch (RuntimeException | ReflectiveOperationException ex) {
+                            log.error(ex.getMessage(), ex.getCause());
                         }
                     }
                 }
@@ -92,7 +87,7 @@ public class OpenCsvWriter {
 
             csvWriter.writeAll(csvData);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error(e.getMessage(), e.getCause());
         }
     }
 }

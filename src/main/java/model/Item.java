@@ -1,7 +1,6 @@
 package model;
 
 import com.opencsv.bean.CsvBindByPosition;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,7 +9,6 @@ import java.util.Set;
 
 @Getter
 @Setter
-@Builder
 public class Item {
     @CsvBindByPosition(position = 0)
     private String id;

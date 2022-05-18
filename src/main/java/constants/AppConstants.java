@@ -12,6 +12,7 @@ public class AppConstants {
     public static final String MENU_CSV_PATH = "D:\\menu.csv";
     public static final String BILL_CSV_PATH = "D:\\bill.csv";
     public static final String ITEM_CSV_PATH = "D:\\item.csv";
+    public static final String ORDER_ITEM_CSV_PATH = "D:\\OrderItem.csv";
 
     public static Date getCurrentUtcTime() {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MMM-dd HH:mm:ss");

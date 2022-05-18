@@ -1,13 +1,11 @@
 package model;
 
 import com.opencsv.bean.CsvBindByPosition;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
-@Builder
 public class OrderedItem {
     @CsvBindByPosition(position = 0)
     private String billId;
