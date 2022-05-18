@@ -26,9 +26,13 @@ public class MenuManagement {
     }
 
     public void showMenu() {
-        var lstMenu = OpenCsvReader.getInstance()
-                .parseToObject(Menu.class, AppConstants.MENU_CSV_PATH);
-        lstMenu.forEach(System.out::println);
+        try {
+            var lstMenu = OpenCsvReader.getInstance()
+                    .parseToObject(Menu.class, AppConstants.MENU_CSV_PATH);
+            lstMenu.forEach(System.out::println);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e.getCause());
+        }
     }
 
     public boolean createOrUpdateMenu(Menu menu) {
@@ -75,7 +79,7 @@ public class MenuManagement {
     public List<Menu> getAllMenus() {
         try {
             return OpenCsvReader.getInstance().parseToObject(Menu.class, AppConstants.MENU_CSV_PATH);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e.getCause());
             return null;
         }
@@ -88,7 +92,7 @@ public class MenuManagement {
             lstMenu.removeIf(menu -> menu.getId().equals(id));
             // update
             OpenCsvWriter.getInstance().importToCsvFiles(lstMenu, AppConstants.MENU_CSV_PATH);
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e.getCause());
         }
     }
@@ -101,6 +105,8 @@ public class MenuManagement {
         if (menu == null)
             return false;
 
+        item.setMenuId(menuId);
+
         if (Validation.getInstance().isInvalidId(item, menu))
             return false;
 
@@ -108,7 +114,6 @@ public class MenuManagement {
         if (items == null || items.isEmpty()) {
             if (items == null)
                 items = new HashSet<>();
-            item.setMenuId(menuId);
             items.add(item);
         } else {
             if (items.contains(item)) {
@@ -126,7 +131,6 @@ public class MenuManagement {
             } else {
                 // create
                 if (Validation.getInstance().isNotDuplicationType(items, item)) {
-                    item.setMenuId(menuId);
                     items.add(item);
                 }
             }

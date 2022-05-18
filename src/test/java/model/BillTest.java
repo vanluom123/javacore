@@ -1,18 +1,15 @@
-package management;
+package model;
 
 import constants.AppConstants;
-import model.Bill;
-import model.OrderedItem;
+import management.BillManagement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import utils.OpenCsvReader;
 
 import java.util.Objects;
 import java.util.UUID;
 
-public class BillManagementTest {
-
+public class BillTest {
     private static BillManagement bm;
 
     @BeforeAll
